@@ -1,0 +1,46 @@
+# Render.com deployment configuration
+services:
+  - type: web
+    name: adminpanel-api
+    env: node
+    plan: starter # or pro for production
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false # Set this in Render dashboard - use MongoDB Atlas
+      - key: JWT_SECRET
+        sync: false # Set this in Render dashboard
+      - key: JWT_EXPIRE
+        value: 30d
+      - key: ADMIN_EMAIL
+        value: admin@yourcompany.com
+      - key: ADMIN_PASSWORD
+        sync: false # Set this in Render dashboard
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dpmceu66e
+      - key: CLOUDINARY_API_KEY
+        value: 467628466542213
+      - key: CLOUDINARY_API_SECRET
+        sync: false # Set this in Render dashboard
+      - key: RECAPTCHA_SECRET_KEY
+        sync: false # Set this in Render dashboard
+      - key: CORS_ORIGIN
+        value: https://your-frontend-domain.com
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USER
+        sync: false # Set this in Render dashboard
+      - key: EMAIL_PASS
+        sync: false # Set this in Render dashboard
+      - key: EMAIL_FROM
+        value: noreply@yourcompany.com
+    healthCheckPath: /health
+    domains:
+      - adminpanel-api.onrender.com # Update with your actual domain
