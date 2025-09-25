@@ -15,7 +15,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const categoryRoutes = require('./routes/category');
 const blogRoutes = require('./routes/blog');
-const testRoutes = require('./routes/test');
+// const testRoutes = require('./routes/test');
 
 const errorHandler = require('./middleware/errorHandler');
 const { generalLimiter, authLimiter, contactLimiter } = require('./middleware/rateLimiter');
