@@ -108,7 +108,7 @@ const blogSchema = new mongoose.Schema(
 blogSchema.pre("save", function (next) {
   if (!this.slug || (this.isModified("title") && !this.isModified("slug"))) {
     const baseSlug = slugify(this.title, { lower: true, strict: true });
-    this.slug = `${baseSlug}-${Date.now()}`;
+    this.slug = `${baseSlug}`;
   }
   else if (this.isModified("slug")) {
     this.slug = slugify(this.slug, { lower: true, strict: true });
