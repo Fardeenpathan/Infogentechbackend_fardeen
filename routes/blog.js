@@ -15,7 +15,11 @@ const {
   getFeaturedBlogs,
   getPopularTags,
   searchBlogs,
-  checkSlugAvailability
+  checkSlugAvailability,
+  addFaqToBlog,
+  updateFaqInBlog,
+  deleteFaqFromBlog,
+  getBlogFaqs
 } = require('../controllers/blogController');
 const { protect, adminOnly } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
@@ -162,7 +166,29 @@ const blogValidation = [
     .optional()
     .trim()
     .isLength({ max: 200 })
-    .withMessage('Featured image alt text must not exceed 200 characters')
+    .withMessage('Featured image alt text must not exceed 200 characters'),
+  body('faqs')
+    .optional()
+    .isArray()
+    .withMessage('FAQs must be an array'),
+  body('faqs.*.question')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('FAQ question must be between 1 and 500 characters'),
+  body('faqs.*.answer')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('FAQ answer must be between 1 and 2000 characters'),
+  body('faqs.*.order')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('FAQ order must be a non-negative integer'),
+  body('faqs.*.isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('FAQ isActive must be a boolean value')
 ];
 
 const blogQueryValidation = [
@@ -297,5 +323,50 @@ router.post('/admin/upload-image',
   validate,
   uploadContentImage
 );
+
+// FAQ Management Routes
+router.get('/:id/faqs', getBlogFaqs);
+
+router.post('/:id/faqs', [
+  body('question')
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('FAQ question must be between 1 and 500 characters'),
+  body('answer')
+    .trim()
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('FAQ answer must be between 1 and 2000 characters'),
+  body('order')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('FAQ order must be a non-negative integer'),
+  body('isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('FAQ isActive must be a boolean value')
+], validate, addFaqToBlog);
+
+router.put('/:id/faqs/:faqId', [
+  body('question')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('FAQ question must be between 1 and 500 characters'),
+  body('answer')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('FAQ answer must be between 1 and 2000 characters'),
+  body('order')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('FAQ order must be a non-negative integer'),
+  body('isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('FAQ isActive must be a boolean value')
+], validate, updateFaqInBlog);
+
+router.delete('/:id/faqs/:faqId', deleteFaqFromBlog);
 
 module.exports = router;

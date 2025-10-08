@@ -90,6 +90,34 @@ const parseFormJsonFields = (req, res, next) => {
         delete req.body[key];
       }
     });
+
+    const faqs = {};
+    const faqsToDelete = [];
+    
+    Object.keys(req.body).forEach(key => {
+      const faqMatch = key.match(/^faqs\[(\d+)\]\[([^\]]+)\]$/);
+      if (faqMatch) {
+        const [, index, field] = faqMatch;
+        const faqIndex = parseInt(index);
+        
+        if (!faqs[faqIndex]) {
+          faqs[faqIndex] = {};
+        }
+        
+        faqs[faqIndex][field] = req.body[key];
+        faqsToDelete.push(key);
+      }
+    });
+    
+    // Clean up processed FAQ fields
+    faqsToDelete.forEach(key => delete req.body[key]);
+    
+    // Convert faqs object to array
+    if (Object.keys(faqs).length > 0) {
+      req.body.faqs = Object.keys(faqs)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map(index => faqs[index]);
+    }
     
     // Fix block data field names (convert text to content, code to content)
     if (req.body.blocks && Array.isArray(req.body.blocks)) {

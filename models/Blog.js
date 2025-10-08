@@ -96,6 +96,30 @@ const blogSchema = new mongoose.Schema(
       default: "en",
       enum: ["en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ar"],
     },
+    faqs: [
+      {
+        question: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: [500, "FAQ question cannot exceed 500 characters"],
+        },
+        answer: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: [2000, "FAQ answer cannot exceed 2000 characters"],
+        },
+        order: {
+          type: Number,
+          default: 0,
+        },
+        isActive: {
+          type: Boolean,
+          default: true,
+        },
+      },
+    ],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
