@@ -275,7 +275,7 @@ const searchValidation = [
     .withMessage('Page must be a positive integer')
 ];
 
-router.get('/', blogLimiter, blogQueryValidation, validate, getBlogs);
+router.get('/', blogQueryValidation, validate, getBlogs);
 router.get('/featured', blogLimiter, getFeaturedBlogs);
 router.get('/tags', blogLimiter, getPopularTags);
 router.get('/search', blogLimiter, searchValidation, validate, searchBlogs);

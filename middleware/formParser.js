@@ -109,31 +109,25 @@ const parseFormJsonFields = (req, res, next) => {
       }
     });
     
-    // Clean up processed FAQ fields
     faqsToDelete.forEach(key => delete req.body[key]);
     
-    // Convert faqs object to array
     if (Object.keys(faqs).length > 0) {
       req.body.faqs = Object.keys(faqs)
         .sort((a, b) => parseInt(a) - parseInt(b))
         .map(index => faqs[index]);
     }
     
-    // Fix block data field names (convert text to content, code to content)
     if (req.body.blocks && Array.isArray(req.body.blocks)) {
       req.body.blocks.forEach(block => {
         if (block.data) {
-          // Convert 'text' to 'content' for paragraph and heading blocks
           if (block.data.text && !block.data.content) {
             block.data.content = block.data.text;
             delete block.data.text;
           }
-          // Convert 'code' to 'content' for code blocks
           if (block.data.code && !block.data.content) {
             block.data.content = block.data.code;
             delete block.data.code;
           }
-          // Convert string level to number
           if (block.data.level && typeof block.data.level === 'string') {
             block.data.level = parseInt(block.data.level);
           }
