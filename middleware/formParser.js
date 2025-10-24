@@ -48,7 +48,6 @@ const parseFormJsonFields = (req, res, next) => {
       }
     });
     
-    // Clean up processed block fields
     blocksToDelete.forEach(key => delete req.body[key]);
     
     // Convert blocks object to array
@@ -66,7 +65,7 @@ const parseFormJsonFields = (req, res, next) => {
         try {
           req.body[field] = JSON.parse(req.body[field]);
         } catch (parseError) {
-          console.log(`Warning: Could not parse ${field} as JSON:`, req.body[field]);
+          // console.log(`Warning: Could not parse ${field} as JSON:`, req.body[field]);
         }
       }
     });
@@ -135,7 +134,7 @@ const parseFormJsonFields = (req, res, next) => {
       });
     }
     
-    console.log('Final parsed body:', JSON.stringify(req.body, null, 2));
+    // console.log('Final parsed body:', JSON.stringify(req.body, null, 2));
     next();
   } catch (error) {
     console.error('Form parsing error:', error);

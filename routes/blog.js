@@ -96,9 +96,9 @@ const blogValidation = [
   body('slug')
     .optional()
     .trim()
-    .isLength({ min: 3, max: 100 })
-    .matches(/^[a-z0-9-]+$/)
-    .withMessage('Slug must be 3-100 characters long and contain only lowercase letters, numbers, and hyphens'),
+    // .isLength({ min: 3, max: 100 })
+    .matches(/^[a-z0-9-]+$/),
+    // .withMessage('Slug must be 3-100 characters long and contain only lowercase letters, numbers, and hyphens'),
   body('excerpt')
     .optional()
     .trim()
@@ -148,11 +148,11 @@ const blogValidation = [
     .trim()
     .isLength({ max: 60 })
     .withMessage('SEO title must not exceed 60 characters'),
-  body('seo.description')
-    .optional()
-    .trim()
-    .isLength({ max: 160 })
-    .withMessage('SEO description must not exceed 160 characters'),
+  // body('seo.description')
+  //   .optional()
+  //   .trim()
+  //   // .isLength({ max: 160 })
+  //   .withMessage('SEO description must not exceed 160 characters'),
   body('seo.keywords')
     .optional()
     .isArray()
