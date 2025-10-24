@@ -361,7 +361,8 @@ const createBlog = async (req, res, next) => {
       blocks,
       seo,
       language,
-      scheduledAt
+      scheduledAt,
+      faqs
     } = req.body;
 
     const categoryExists = await Category.findById(category);
@@ -396,7 +397,8 @@ const createBlog = async (req, res, next) => {
       blocks: blocks || [],
       seo: seo || {},
       language: language || 'en',
-      scheduledAt: scheduledAt || null
+      scheduledAt: scheduledAt || null,
+      faqs: faqs || []
     };
 
     if (req.file) {
@@ -456,7 +458,8 @@ const updateBlog = async (req, res, next) => {
       blocks,
       seo,
       language,
-      scheduledAt
+      scheduledAt,
+      faqs
     } = req.body;
 
     if (category && category !== blog.category.toString()) {
@@ -494,6 +497,7 @@ const updateBlog = async (req, res, next) => {
     if (seo !== undefined) updateData.seo = { ...blog.seo, ...seo };
     if (language !== undefined) updateData.language = language;
     if (scheduledAt !== undefined) updateData.scheduledAt = scheduledAt;
+    if (faqs !== undefined) updateData.faqs = faqs;
 
     if (req.file) {
       if (blog.featuredImage && blog.featuredImage.public_id) {
@@ -790,6 +794,145 @@ const checkSlugAvailability = async (req, res, next) => {
   }
 };
 
+// @desc    Add FAQ to blog
+// @route   POST /api/blogs/:id/faqs
+// @access  Private/Admin
+const addFaqToBlog = async (req, res, next) => {
+  try {
+    const { question, answer, order, isActive } = req.body;
+
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog not found'
+      });
+    }
+
+    const newFaq = {
+      question,
+      answer,
+      order: order || blog.faqs.length,
+      isActive: isActive !== undefined ? isActive : true
+    };
+
+    blog.faqs.push(newFaq);
+    await blog.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'FAQ added successfully',
+      data: blog.faqs[blog.faqs.length - 1]
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update FAQ in blog
+// @route   PUT /api/blogs/:id/faqs/:faqId
+// @access  Private/Admin
+const updateFaqInBlog = async (req, res, next) => {
+  try {
+    const { question, answer, order, isActive } = req.body;
+
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog not found'
+      });
+    }
+
+    const faq = blog.faqs.id(req.params.faqId);
+    if (!faq) {
+      return res.status(404).json({
+        success: false,
+        message: 'FAQ not found'
+      });
+    }
+
+    if (question !== undefined) faq.question = question;
+    if (answer !== undefined) faq.answer = answer;
+    if (order !== undefined) faq.order = order;
+    if (isActive !== undefined) faq.isActive = isActive;
+
+    await blog.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'FAQ updated successfully',
+      data: faq
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete FAQ from blog
+// @route   DELETE /api/blogs/:id/faqs/:faqId
+// @access  Private/Admin
+const deleteFaqFromBlog = async (req, res, next) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog not found'
+      });
+    }
+
+    const faq = blog.faqs.id(req.params.faqId);
+    if (!faq) {
+      return res.status(404).json({
+        success: false,
+        message: 'FAQ not found'
+      });
+    }
+
+    blog.faqs.pull(req.params.faqId);
+    await blog.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'FAQ deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all FAQs for a blog
+// @route   GET /api/blogs/:id/faqs
+// @access  Public
+const getBlogFaqs = async (req, res, next) => {
+  try {
+    const blog = await Blog.findById(req.params.id).select('faqs title');
+    if (!blog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog not found'
+      });
+    }
+
+    // Filter active FAQs for public access
+    const faqs = req.admin ? blog.faqs : blog.faqs.filter(faq => faq.isActive);
+    
+    // Sort by order
+    faqs.sort((a, b) => a.order - b.order);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        blogTitle: blog.title,
+        faqs: faqs
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getBlogs,
   getBlog,
@@ -804,5 +947,9 @@ module.exports = {
   getFeaturedBlogs,
   getPopularTags,
   searchBlogs,
-  checkSlugAvailability
+  checkSlugAvailability,
+  addFaqToBlog,
+  updateFaqInBlog,
+  deleteFaqFromBlog,
+  getBlogFaqs
 };

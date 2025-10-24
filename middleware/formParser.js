@@ -48,7 +48,6 @@ const parseFormJsonFields = (req, res, next) => {
       }
     });
     
-    // Clean up processed block fields
     blocksToDelete.forEach(key => delete req.body[key]);
     
     // Convert blocks object to array
@@ -66,7 +65,7 @@ const parseFormJsonFields = (req, res, next) => {
         try {
           req.body[field] = JSON.parse(req.body[field]);
         } catch (parseError) {
-          console.log(`Warning: Could not parse ${field} as JSON:`, req.body[field]);
+          // console.log(`Warning: Could not parse ${field} as JSON:`, req.body[field]);
         }
       }
     });
@@ -90,22 +89,44 @@ const parseFormJsonFields = (req, res, next) => {
         delete req.body[key];
       }
     });
+
+    const faqs = {};
+    const faqsToDelete = [];
     
-    // Fix block data field names (convert text to content, code to content)
+    Object.keys(req.body).forEach(key => {
+      const faqMatch = key.match(/^faqs\[(\d+)\]\[([^\]]+)\]$/);
+      if (faqMatch) {
+        const [, index, field] = faqMatch;
+        const faqIndex = parseInt(index);
+        
+        if (!faqs[faqIndex]) {
+          faqs[faqIndex] = {};
+        }
+        
+        faqs[faqIndex][field] = req.body[key];
+        faqsToDelete.push(key);
+      }
+    });
+    
+    faqsToDelete.forEach(key => delete req.body[key]);
+    
+    if (Object.keys(faqs).length > 0) {
+      req.body.faqs = Object.keys(faqs)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map(index => faqs[index]);
+    }
+    
     if (req.body.blocks && Array.isArray(req.body.blocks)) {
       req.body.blocks.forEach(block => {
         if (block.data) {
-          // Convert 'text' to 'content' for paragraph and heading blocks
           if (block.data.text && !block.data.content) {
             block.data.content = block.data.text;
             delete block.data.text;
           }
-          // Convert 'code' to 'content' for code blocks
           if (block.data.code && !block.data.content) {
             block.data.content = block.data.code;
             delete block.data.code;
           }
-          // Convert string level to number
           if (block.data.level && typeof block.data.level === 'string') {
             block.data.level = parseInt(block.data.level);
           }
@@ -113,7 +134,7 @@ const parseFormJsonFields = (req, res, next) => {
       });
     }
     
-    console.log('Final parsed body:', JSON.stringify(req.body, null, 2));
+    // console.log('Final parsed body:', JSON.stringify(req.body, null, 2));
     next();
   } catch (error) {
     console.error('Form parsing error:', error);

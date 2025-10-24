@@ -8,23 +8,23 @@ const { sendContactNotification, sendContactConfirmation } = require('../utils/e
 const submitContactForm = async (req, res, next) => {
 
   try {
-    const { name, email, phoneNumber, productQuestion, message, captcha } = req.body;
+    const { name, email, phoneNumber, productQuestion, message } = req.body;
 
-    if (!captcha) {
-      return res.status(400).json({ success: false, message: "Captcha is required" });
-    }
+    // if (!captcha) {
+    //   return res.status(400).json({ success: false, message: "Captcha is required" });
+    // }
 
-    const captchaRes = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captcha}`,
-    });
+    // const captchaRes = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    //   body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captcha}`,
+    // });
 
-    const captchaData = await captchaRes.json();
+    // const captchaData = await captchaRes.json();
 
-    if (!captchaData.success) {
-      return res.status(400).json({ success: false, message: "Captcha verification failed" });
-    }
+    // if (!captchaData.success) {
+    //   return res.status(400).json({ success: false, message: "Captcha verification failed" });
+    // }
 
     const ipAddress =
       req.headers["x-forwarded-for"] 
