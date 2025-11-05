@@ -6,15 +6,17 @@ dotenv.config();
 
 const createDefaultAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
+
+    console.log('Connecting to MongoDB...', 'mongodb+srv://infogentech99:Infogentech%402025@crm-inhouse.itngqaz.mongodb.net/admin_dashboard?retryWrites=true&w=majority');
+    await mongoose.connect('mongodb+srv://infogentech99:Infogentech%402025@crm-inhouse.itngqaz.mongodb.net/admin_dashboard?retryWrites=true&w=majority', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
 
-    console.log('Connected to MongoDB');
+    // console.log('Connected to MongoDB');
 
     // Check if admin already exists
-    const existingAdmin = await Admin.findOne({ email: process.env.ADMIN_EMAIL });
+    const existingAdmin = await Admin.findOne({ email: 'admin@yourcompany.com' });
     
     if (existingAdmin) {
       console.log('Default admin already exists');
@@ -23,15 +25,15 @@ const createDefaultAdmin = async () => {
 
     const admin = await Admin.create({
       name: 'Super Admin',
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
+      email: 'admin@yourcompany.com',
+      password: 'admin123',
       role: 'super-admin'
     });
 
-    console.log('Default admin created successfully:');
-    console.log(`Email: ${admin.email}`);
-    console.log(`Password: ${process.env.ADMIN_PASSWORD}`);
-    console.log('\n⚠️  Please change the default password after first login!');
+    // console.log('Default admin created successfully:');
+    // console.log(`Email: ${admin.email}`);
+    // console.log(`Password: ${process.env.ADMIN_PASSWORD}`);
+    // console.log('\n⚠️  Please change the default password after first login!');
 
     process.exit(0);
   } catch (error) {

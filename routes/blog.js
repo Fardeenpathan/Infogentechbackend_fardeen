@@ -188,7 +188,15 @@ const blogValidation = [
   body('faqs.*.isActive')
     .optional()
     .isBoolean()
-    .withMessage('FAQ isActive must be a boolean value')
+    .withMessage('FAQ isActive must be a boolean value'),
+  body('country')
+    .optional()
+    .isIn(['global', 'us', 'in', 'uk', 'ca', 'au', 'de', 'fr', 'es', 'it', 'jp', 'br'])
+    .withMessage('Country must be one of: global, us, in, uk, ca, au, de, fr, es, it, jp, br'),
+  body('region')
+    .optional()
+    .isIn(['global', 'north-america', 'europe', 'asia', 'oceania', 'south-america', 'africa'])
+    .withMessage('Region must be one of: global, north-america, europe, asia, oceania, south-america, africa')
 ];
 
 const blogQueryValidation = [
@@ -248,7 +256,29 @@ const blogQueryValidation = [
   query('fullContent')
     .optional()
     .isBoolean()
-    .withMessage('fullContent must be a boolean value')
+    .withMessage('fullContent must be a boolean value'),
+  query('country')
+    .optional()
+    .custom((value) => {
+      const allowedCountries = ['global', 'us', 'in', 'uk', 'ca', 'au', 'de', 'fr', 'es', 'it', 'jp', 'br'];
+      const countries = value.split(',').map(c => c.trim().toLowerCase());
+      const invalid = countries.filter(c => !allowedCountries.includes(c));
+      if (invalid.length > 0) {
+        throw new Error(`Invalid countries: ${invalid.join(', ')}. Allowed: ${allowedCountries.join(', ')}`);
+      }
+      return true;
+    }),
+  query('region')
+    .optional()
+    .custom((value) => {
+      const allowedRegions = ['global', 'north-america', 'europe', 'asia', 'oceania', 'south-america', 'africa'];
+      const regions = value.split(',').map(r => r.trim().toLowerCase());
+      const invalid = regions.filter(r => !allowedRegions.includes(r));
+      if (invalid.length > 0) {
+        throw new Error(`Invalid regions: ${invalid.join(', ')}. Allowed: ${allowedRegions.join(', ')}`);
+      }
+      return true;
+    })
 ];
 
 const searchValidation = [
