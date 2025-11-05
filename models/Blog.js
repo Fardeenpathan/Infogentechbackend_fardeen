@@ -96,6 +96,17 @@ const blogSchema = new mongoose.Schema(
       default: "en",
       enum: ["en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ar"],
     },
+    country: {
+      type: String,
+      default: "global",
+      enum: ["global", "us", "in", "uk", "ca", "au", "de", "fr", "es", "it", "jp", "br"],
+      index: true, 
+    },
+    region: {
+      type: String,
+      enum: ["global", "north-america", "europe", "asia", "oceania", "south-america", "africa"],
+      default: "global",
+    },
     faqs: [
       {
         question: {

@@ -21,13 +21,12 @@ const validateSlug = async (slug, excludeId = null) => {
   return formattedSlug;
 };
 
-// @desc    Get all blogs
-// @route   GET /api/blogs
-// @access  Public
+// Get all blogs
+
 const getBlogs = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
+    const limit = parseInt(req.query.limit, 10) || 1000;
     const startIndex = (page - 1) * limit;
 
     let query = {};
@@ -76,6 +75,26 @@ const getBlogs = async (req, res, next) => {
     if (req.query.tags) {
       const tags = req.query.tags.split(',').map(tag => tag.trim().toLowerCase());
       query.tags = { $in: tags };
+    }
+
+    //  filter by country 
+    if (req.query.country) {
+      const countries = req.query.country.split(',').map(c => c.trim().toLowerCase());
+      if (countries.length === 1) {
+        query.country = countries[0];
+      } else {
+        query.country = { $in: countries };
+      }
+    }
+
+    //  filtering by region
+    if (req.query.region) {
+      const regions = req.query.region.split(',').map(r => r.trim().toLowerCase());
+      if (regions.length === 1) {
+        query.region = regions[0];
+      } else {
+        query.region = { $in: regions };
+      }
     }
 
     if (req.query.startDate || req.query.endDate) {
@@ -133,16 +152,15 @@ const getBlogs = async (req, res, next) => {
   }
 };
 
-// @desc    Get single blog
-// @route   GET /api/blogs/:id
-// @access  Public
+// Get single blog
+
 const getBlog = async (req, res, next) => {
   try {
     const blog = await Blog.findById(req.params.id)
       .populate('category', 'name slug color description')
       .populate('author', 'name email');
 
-      console.log(blog)
+      // console.log(blog)
 
     // if (!blog) {
     //   return res.status(404).json({
@@ -151,7 +169,7 @@ const getBlog = async (req, res, next) => {
     //   });
     // }
 
-    console.log(req.params.id)
+    // console.log(req.params.id)
 
     // if (blog.status !== 'published' && !req.admin) {
     //   return res.status(404).json({
@@ -171,11 +189,10 @@ const getBlog = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+}
 
-// @desc    Get blog by slug
-// @route   GET /api/blogs/slug/:slug
-// @access  Public
+
+// Get blog by slug
 const getBlogBySlug = async (req, res, next) => {
   try {
     const blog = await Blog.findOne({ slug: req.params.slug })
@@ -209,9 +226,8 @@ const getBlogBySlug = async (req, res, next) => {
   }
 };
 
-// @desc    Get blogs by category
-// @route   GET /api/blogs/category/:categorySlug
-// @access  Public
+//Get blogs by category
+
 const getBlogsByCategory = async (req, res, next) => {
   try {
     const { categorySlug } = req.params;
@@ -232,7 +248,18 @@ const getBlogsByCategory = async (req, res, next) => {
       status: 'published'
     };
 
-    // Additional filters
+    // Add country filtering if provided
+    if (req.query.country) {
+      const countries = req.query.country.split(',').map(c => c.trim().toLowerCase());
+      query.country = countries.length === 1 ? countries[0] : { $in: countries };
+    }
+
+    // Add region filtering if provided
+    if (req.query.region) {
+      const regions = req.query.region.split(',').map(r => r.trim().toLowerCase());
+      query.region = regions.length === 1 ? regions[0] : { $in: regions };
+    }
+
     if (req.query.featured !== undefined) {
       query.isFeatured = req.query.featured === 'true';
     }
@@ -290,9 +317,8 @@ const getBlogsByCategory = async (req, res, next) => {
   }
 };
 
-// @desc    Get categories with blog count
-// @route   GET /api/blogs/categories-with-count
-// @access  Public
+//  Get categories with blog count
+
 const getCategoriesWithBlogCount = async (req, res, next) => {
   try {
     const categories = await Category.aggregate([
@@ -344,9 +370,7 @@ const getCategoriesWithBlogCount = async (req, res, next) => {
   }
 };
 
-// @desc    Create new blog
-// @route   POST /api/admin/blogs
-// @access  Private (Admin only)
+//  Create new blog
 const createBlog = async (req, res, next) => {
   try {
     const { 
@@ -362,7 +386,9 @@ const createBlog = async (req, res, next) => {
       seo,
       language,
       scheduledAt,
-      faqs
+      faqs,
+      country,
+      region
     } = req.body;
 
     const categoryExists = await Category.findById(category);
@@ -398,7 +424,9 @@ const createBlog = async (req, res, next) => {
       seo: seo || {},
       language: language || 'en',
       scheduledAt: scheduledAt || null,
-      faqs: faqs || []
+      faqs: faqs || [],
+      country: country || 'global',
+      region: region || 'global'
     };
 
     if (req.file) {
@@ -432,9 +460,7 @@ const createBlog = async (req, res, next) => {
   }
 };
 
-// @desc    Update blog
-// @route   PUT /api/admin/blogs/:id
-// @access  Private (Admin only)
+//Update blog
 const updateBlog = async (req, res, next) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -459,7 +485,9 @@ const updateBlog = async (req, res, next) => {
       seo,
       language,
       scheduledAt,
-      faqs
+      faqs,
+      country,
+      region
     } = req.body;
 
     if (category && category !== blog.category.toString()) {
@@ -498,6 +526,8 @@ const updateBlog = async (req, res, next) => {
     if (language !== undefined) updateData.language = language;
     if (scheduledAt !== undefined) updateData.scheduledAt = scheduledAt;
     if (faqs !== undefined) updateData.faqs = faqs;
+    if (country !== undefined) updateData.country = country;
+    if (region !== undefined) updateData.region = region;
 
     if (req.file) {
       if (blog.featuredImage && blog.featuredImage.public_id) {
@@ -544,9 +574,7 @@ const updateBlog = async (req, res, next) => {
   }
 };
 
-// @desc    Delete blog
-// @route   DELETE /api/admin/blogs/:id
-// @access  Private (Admin only)
+//Delete blog
 const deleteBlog = async (req, res, next) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -667,10 +695,24 @@ const getFeaturedBlogs = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit, 10) || 5;
 
-    const blogs = await Blog.find({ 
+    const query = { 
       status: 'published',
       isFeatured: true 
-    })
+    };
+
+    // Add country filtering if provided
+    if (req.query.country) {
+      const countries = req.query.country.split(',').map(c => c.trim().toLowerCase());
+      query.country = countries.length === 1 ? countries[0] : { $in: countries };
+    }
+
+    // Add region filtering if provided
+    if (req.query.region) {
+      const regions = req.query.region.split(',').map(r => r.trim().toLowerCase());
+      query.region = regions.length === 1 ? regions[0] : { $in: regions };
+    }
+
+    const blogs = await Blog.find(query)
       .populate('category', 'name slug color')
       .populate('author', 'name')
       .sort({ publishedAt: -1 })
@@ -732,6 +774,18 @@ const searchBlogs = async (req, res, next) => {
     if (tags) {
       const tagArray = tags.split(',').map(tag => tag.trim().toLowerCase());
       query.tags = { $in: tagArray };
+    }
+
+    // Add country filtering if provided
+    if (req.query.country) {
+      const countries = req.query.country.split(',').map(c => c.trim().toLowerCase());
+      query.country = countries.length === 1 ? countries[0] : { $in: countries };
+    }
+
+    // Add region filtering if provided
+    if (req.query.region) {
+      const regions = req.query.region.split(',').map(r => r.trim().toLowerCase());
+      query.region = regions.length === 1 ? regions[0] : { $in: regions };
     }
 
     const blogs = await Blog.find(query)
