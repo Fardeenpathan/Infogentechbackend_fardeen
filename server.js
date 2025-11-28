@@ -16,6 +16,7 @@ const adminRoutes = require('./routes/admin');
 const categoryRoutes = require('./routes/category');
 const blogRoutes = require('./routes/blog');
 // const testRoutes = require('./routes/test');
+const gmailRoutes = require('./routes/gmail');
 
 const errorHandler = require('./middleware/errorHandler');
 const { generalLimiter, authLimiter, contactLimiter } = require('./middleware/rateLimiter');
@@ -102,6 +103,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/blogs', blogRoutes);
 // app.use('/api/test', testRoutes);
+app.use('/api/gmails', gmailRoutes);
 
 app.all('*', (req, res) => {
   res.status(404).json({
